@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <script src="static/js/echarts.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">B站弹幕可视化分析系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">主页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/TOP20">TOP20热门视频</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Home</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" id="app">
+        <h1 class="text-center">B站弹幕可视化分析系统<p class="text-danger">TOP20热门视频数据总览</p>
+        </h1>
+        <div class="container" style="max-width: 1200px;">
+            <div class="card" id="roading">
+                <div class="card-body ">
+                    <div class="spinner-border text-primary"></div>
+                    <h2 class="card-title" id="roading_title">数据加载中···</h2>
+                </div>
+            </div>
+            <div id="main0" style="width: 1200;height:800px;"></div>
+            <div id="main1" style="width: 1200;height:800px;"></div>
+            <div id="main2" style="width: 1200;height:800px;"></div>
+            <div id="main3" style="width: 1200;height:800px;"></div>
+            <div id="main4" style="width: 1200;height:800px;"></div>
+            <div id="main5" style="width: 1200;height:800px;"></div>
+            <div id="main6" style="width: 1200;height:800px;"></div>
+            <div id="main7" style="width: 1200;height:800px;"></div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+
+        },
+        methods: {
+        },
+        mounted() {
+            $.ajax({
+                type: "POST",
+                url: "submit_task_get_TOP20_data",
+                async: true,
+                cache: true,
+                dataType: "json",
+                success: function (backdata, status, xmlHttpRequest) {
+                    requestID = backdata[0]["requestID"];
+                    $("#roading_title").text("任务创建成功，任务编号为："+requestID)
+                    let timer = setInterval(task, 1000);
+                    function task() {
+                        $.ajax({
+                            type: "GET",
+                            url: "get_task_status/" + requestID,
+                            async: true,
+                            cache: true,
+                            dataType: "json",
+                            success: (backdata, status, xmlHttpRequest) => {
+                                if (backdata[0]["status"] === "get_TOP20_data_done") {
+                                    clearInterval(timer)
+                                    $.ajax({
+                                        type: "GET",
+                                        url: "get_TOP20_data/" + requestID,
+                                        async: true,
+                                        cache: true,
+                                        dataType: "json",
+                                        success: (backdata, status, xmlHttpRequest) => {
+                                            process_chart(backdata);
+                                            $("#roading").hide()
+                                        }
+                                    })
+                                }
+                                // console.log(backdata[0])
+
+                            }
+                        })
+                    }
+                    function process_chart(json_data) {
+                        let view = {}//播放量
+                        json_data.forEach((item) => {
+                            view[item.title] = item["stat"].view
+                        });
+                        let coin = {}//投币数
+                        json_data.forEach((item) => {
+                            coin[item.title] = item["stat"].coin
+                        });
+                        let danmaku = {}//弹幕量
+                        json_data.forEach((item) => {
+                            danmaku[item.title] = item["stat"].danmaku
+                        });
+                        let favorite = {}//收藏量
+                        json_data.forEach((item) => {
+                            favorite[item.title] = item["stat"].favorite
+                        });
+                        let share = {}//分享量
+                        json_data.forEach((item) => {
+                            share[item.title] = item["stat"].share
+                        });
+                        let like = {}//点赞量
+                        json_data.forEach((item) => {
+                            like[item.title] = item["stat"].like
+                        });
+                        let reply = {}//评论量
+                        json_data.forEach((item) => {
+                            reply[item.title] = item["stat"].reply
+                        });
+                        //////////////////////////////////////////////////////////////////////////////
+                        let sum_view = 0;
+                        Object.values(view).forEach((item) => {
+                            sum_view = sum_view + item;
+                        });
+                        let sum_coin = 0;
+                        Object.values(coin).forEach((item) => {
+                            sum_coin = sum_coin + item;
+                        });
+                        let sum_danmaku = 0;
+                        Object.values(danmaku).forEach((item) => {
+                            sum_danmaku = sum_danmaku + item;
+                        });
+                        let sum_favorite = 0;
+                        Object.values(favorite).forEach((item) => {
+                            sum_favorite = sum_favorite + item;
+                        });
+                        let sum_share = 0;
+                        Object.values(share).forEach((item) => {
+                            sum_share = sum_share + item;
+                        });
+                        let sum_like = 0;
+                        Object.values(like).forEach((item) => {
+                            sum_like = sum_like + item;
+                        });
+                        let sum_reply = 0;
+                        Object.values(reply).forEach((item) => {
+                            sum_reply = sum_reply + item;
+                        });
+                        //////////////计算百分比
+                        let values_view = Object.values(view)
+                        values_view.forEach((item, index, arr) => {
+                            values_view[index] = ((item / sum_view) * 100).toFixed(3);
+                        });
+
+                        let values_coin = Object.values(coin)
+                        values_coin.forEach((item, index, arr) => {
+                            values_coin[index] = ((item / sum_coin) * 100).toFixed(3);
+                        });
+
+                        let values_danmaku = Object.values(danmaku)
+                        values_danmaku.forEach((item, index, arr) => {
+                            values_danmaku[index] = ((item / sum_danmaku) * 100).toFixed(3);
+                        });
+
+                        let values_favorite = Object.values(favorite)
+                        values_favorite.forEach((item, index, arr) => {
+                            values_favorite[index] = ((item / sum_favorite) * 100).toFixed(3);
+                        });
+
+                        let values_share = Object.values(share)
+                        values_share.forEach((item, index, arr) => {
+                            values_share[index] = ((item / sum_share) * 100).toFixed(3);
+                        });
+
+                        let values_like = Object.values(like)
+                        values_like.forEach((item, index, arr) => {
+                            values_like[index] = ((item / sum_like) * 100).toFixed(3);
+                        });
+
+                        let values_reply = Object.values(reply)
+                        values_reply.forEach((item, index, arr) => {
+                            values_reply[index] = ((item / sum_reply) * 100).toFixed(3);
+                        });
+                        // console.log(values_view, values_coin, values_danmaku, values_favorite, values_like, values_reply, values_share)
+                        let chartDom = document.getElementById('main0');
+                        let myChart = echarts.init(chartDom);
+                        let option;
+
+                        option = {
+                            title: {
+                                text: '总览'
+                            },
+                            tooltip: {
+                                trigger: 'axis',
+                                axisPointer: {
+                                    type: 'cross',
+                                    crossStyle: {
+                                        color: '#999'
+                                    }
+                                }
+                            },
+                            legend: {
+                                data: ['播放量', '投币量', '弹幕量', '收藏量', '分享量', '点赞量', '评论量']
+                            },
+                            grid: {
+                                left: '3%',
+                                right: '4%',
+                                bottom: '3%',
+                                containLabel: true
+                            },
+                            toolbox: {
+                                feature: {
+                                    saveAsImage: {}
+                                }
+                            },
+                            xAxis: {
+                                type: 'category',
+                                boundaryGap: false,
+                                data: Object.keys(view),
+                                axisLabel: {
+                                    interval: 0, // 坐标刻度之间的显示间隔，默认就可以了
+                                    rotate: 38 // 调整数值改变倾斜的幅度（范围-90到90）
+                                },
+                            },
+                            yAxis: { type: 'value' },
+                            series: [
+                                {
+                                    name: '播放量',
+                                    type: 'line',
+                                    // stack: 'Total',
+                                    data: values_view,
+                                    smooth: true,
+                                    itemStyle: {
+                                        normal: {
+                                            // label: {
+                                            //     show: true // 在折线拐点上显示数据
+                                            // },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    name: '投币量',
+                                    type: 'line',
+                                    // stack: 'Total',
+                                    smooth: true,
+                                    data: values_coin,
+                                    itemStyle: {
+                                        normal: {
+                                            // label: {
+                                            //     show: true // 在折线拐点上显示数据
+                                            // },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    name: '弹幕数',
+                                    type: 'line',
+                                    smooth: true,
+                                    // stack: 'Total',
+                                    data: values_danmaku,
+                                    itemStyle: {
+                                        normal: {
+                                            // label: {
+                                            //     show: true // 在折线拐点上显示数据
+                                            // },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    name: '收藏量',
+                                    type: 'line',
+                                    smooth: true,
+                                    // stack: 'Total',
+                                    data: values_favorite,
+                                    itemStyle: {
+                                        normal: {
+                                            // label: {
+                                            //     show: true // 在折线拐点上显示数据
+                                            // },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    name: '分享量',
+                                    type: 'line',
+                                    smooth: true,
+                                    // stack: 'Total',
+                                    data: values_share,
+                                    itemStyle: {
+                                        normal: {
+                                            // label: {
+                                            //     show: true // 在折线拐点上显示数据
+                                            // },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    name: '点赞量',
+                                    type: 'line',
+                                    smooth: true,
+                                    // stack: 'Total',
+                                    data: values_like,
+                                    itemStyle: {
+                                        normal: {
+                                            // label: {
+                                            //     show: true // 在折线拐点上显示数据
+                                            // },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    name: '评论量',
+                                    type: 'line',
+                                    smooth: true,
+                                    // stack: 'Total',
+                                    data: values_reply,
+                                    itemStyle: {
+                                        normal: {
+                                            // label: {
+                                            //     show: true // 在折线拐点上显示数据
+                                            // },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        };
+
+                        option && myChart.setOption(option);
+                        //////////////////////////////////////////////////////////////////////////////
+
+                        chartDom = document.getElementById('main1');
+                        myChart = echarts.init(chartDom);
+
+                        option = {
+                            title: {
+                                text: 'B站热门视频TOP20 实时播放量'
+                            },
+                            grid: {
+                                left: '18%',
+                                bottom: '38%'
+                            },
+                            xAxis: {
+                                type: 'category',
+                                data: Object.keys(view),
+                                axisLabel: {
+                                    interval: 0, // 坐标刻度之间的显示间隔，默认就可以了
+                                    rotate: 38 // 调整数值改变倾斜的幅度（范围-90到90）
+                                },
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: [
+                                {
+                                    data: Object.values(view),
+                                    type: 'line',
+                                    smooth: true,
+                                    symbolSize: 8,
+                                    itemStyle: {
+                                        normal: {
+                                            label: {
+                                                show: true // 在折线拐点上显示数据
+                                            },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        };
+                        option && myChart.setOption(option);
+                        //////////////////////////////////////////////////////////////////////////////
+                        chartDom = document.getElementById('main2');
+                        myChart = echarts.init(chartDom);
+                        option = {
+                            title: {
+                                text: 'B站热门视频TOP20 实时投币量'
+                            },
+                            grid: {
+                                left: '18%',
+                                bottom: '38%'
+                            },
+                            xAxis: {
+                                type: 'category',
+                                data: Object.keys(coin),
+                                axisLabel: {
+                                    interval: 0, // 坐标刻度之间的显示间隔，默认就可以了
+                                    rotate: 38 // 调整数值改变倾斜的幅度（范围-90到90）
+                                },
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: [
+                                {
+                                    data: Object.values(coin),
+                                    type: 'line',
+                                    smooth: true,
+                                    symbolSize: 8,
+                                    itemStyle: {
+                                        normal: {
+                                            label: {
+                                                show: true // 在折线拐点上显示数据
+                                            },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        };
+                        option && myChart.setOption(option);
+                        //////////////////////////////////////////////////////////////////////////////
+                        chartDom = document.getElementById('main3');
+                        myChart = echarts.init(chartDom);
+                        option = {
+                            title: {
+                                text: 'B站热门视频TOP20 实时弹幕量'
+                            },
+                            grid: {
+                                left: '18%',
+                                bottom: '38%'
+                            },
+                            xAxis: {
+                                type: 'category',
+                                data: Object.keys(danmaku),
+                                axisLabel: {
+                                    interval: 0, // 坐标刻度之间的显示间隔，默认就可以了
+                                    rotate: 38 // 调整数值改变倾斜的幅度（范围-90到90）
+                                },
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: [
+                                {
+                                    data: Object.values(danmaku),
+                                    type: 'line',
+                                    smooth: true,
+                                    symbolSize: 8,
+                                    itemStyle: {
+                                        normal: {
+                                            label: {
+                                                show: true // 在折线拐点上显示数据
+                                            },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        };
+                        option && myChart.setOption(option);
+                        //////////////////////////////////////////////////////////////////////////////
+                        chartDom = document.getElementById('main4');
+                        myChart = echarts.init(chartDom);
+                        option = {
+                            title: {
+                                text: 'B站热门视频TOP20 实时收藏量'
+                            },
+                            grid: {
+                                left: '18%',
+                                bottom: '38%'
+                            },
+                            xAxis: {
+                                type: 'category',
+                                data: Object.keys(favorite),
+                                axisLabel: {
+                                    interval: 0, // 坐标刻度之间的显示间隔，默认就可以了
+                                    rotate: 38 // 调整数值改变倾斜的幅度（范围-90到90）
+                                },
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: [
+                                {
+                                    data: Object.values(favorite),
+                                    type: 'line',
+                                    smooth: true,
+                                    symbolSize: 8,
+                                    itemStyle: {
+                                        normal: {
+                                            label: {
+                                                show: true // 在折线拐点上显示数据
+                                            },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        };
+                        option && myChart.setOption(option);
+                        //////////////////////////////////////////////////////////////////////////////
+                        chartDom = document.getElementById('main5');
+                        myChart = echarts.init(chartDom);
+                        option = {
+                            title: {
+                                text: 'B站热门视频TOP20 实时分享量'
+                            },
+                            grid: {
+                                left: '18%',
+                                bottom: '38%'
+                            },
+                            xAxis: {
+                                type: 'category',
+                                data: Object.keys(share),
+                                axisLabel: {
+                                    interval: 0, // 坐标刻度之间的显示间隔，默认就可以了
+                                    rotate: 38 // 调整数值改变倾斜的幅度（范围-90到90）
+                                },
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: [
+                                {
+                                    data: Object.values(share),
+                                    type: 'line',
+                                    smooth: true,
+                                    symbolSize: 8,
+                                    itemStyle: {
+                                        normal: {
+                                            label: {
+                                                show: true // 在折线拐点上显示数据
+                                            },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        };
+                        option && myChart.setOption(option);
+                        //////////////////////////////////////////////////////////////////////////////
+                        chartDom = document.getElementById('main6');
+                        myChart = echarts.init(chartDom);
+                        option = {
+                            title: {
+                                text: 'B站热门视频TOP20 实时点赞量'
+                            },
+                            grid: {
+                                left: '18%',
+                                bottom: '38%'
+                            },
+                            xAxis: {
+                                type: 'category',
+                                data: Object.keys(like),
+                                axisLabel: {
+                                    interval: 0, // 坐标刻度之间的显示间隔，默认就可以了
+                                    rotate: 38 // 调整数值改变倾斜的幅度（范围-90到90）
+                                },
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: [
+                                {
+                                    data: Object.values(like),
+                                    type: 'line',
+                                    smooth: true,
+                                    symbolSize: 8,
+                                    itemStyle: {
+                                        normal: {
+                                            label: {
+                                                show: true // 在折线拐点上显示数据
+                                            },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        };
+                        option && myChart.setOption(option);
+                        //////////////////////////////////////////////////////////////////////////////
+                        chartDom = document.getElementById('main7');
+                        myChart = echarts.init(chartDom);
+                        option = {
+                            title: {
+                                text: 'B站热门视频TOP20 实时评论量'
+                            },
+                            grid: {
+                                left: '18%',
+                                bottom: '38%'
+                            },
+                            xAxis: {
+                                type: 'category',
+                                data: Object.keys(reply),
+                                axisLabel: {
+                                    interval: 0, // 坐标刻度之间的显示间隔，默认就可以了
+                                    rotate: 38 // 调整数值改变倾斜的幅度（范围-90到90）
+                                },
+                            },
+                            yAxis: {
+                                type: 'value'
+                            },
+                            series: [
+                                {
+                                    data: Object.values(reply),
+                                    type: 'line',
+                                    smooth: true,
+                                    symbolSize: 8,
+                                    itemStyle: {
+                                        normal: {
+                                            label: {
+                                                show: true // 在折线拐点上显示数据
+                                            },
+                                            lineStyle: {
+                                                width: 3, // 设置虚线宽度
+                                                type: 'dotted' // 虚线'dotted' 实线'solid'
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        };
+                        option && myChart.setOption(option);
+                        //////////////////////////////////////////////////////////////////////////////
+                    }
+
+                },
+                error: function (msg) {
+                    alert("错误内容" + msg)
+                }
+            });
+
+
+        },
+    })
+
+</script>

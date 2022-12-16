@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Bootstrap5 实例</title>
+    <meta charset="utf-8">
+    <!-- <meta name="viewport" content="width=device-width, initial-scale=1"> -->
+    <meta name="referrer" content="no-referrer" />
+    <script src="static/js/echarts.js"></script>
+    <script src="static/js/chart.js"></script>
+    <link href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+    <link href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+    <!-- <script type="text/javascript" src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
+    <script type="text/javascript" src="https://assets.pyecharts.org/assets/echarts-wordcloud.min.js"></script> -->
+
+    </script>
+    <style>
+        body {
+            min-height: 100vh;
+            min-height: -webkit-fill-available
+        }
+
+        html {
+            height: -webkit-fill-available
+        }
+
+        main {
+            display: flex;
+            flex-wrap: nowrap;
+            height: 100vh;
+            height: -webkit-fill-available;
+            max-height: 100vh;
+            overflow-x: auto;
+            overflow-y: hidden
+        }
+
+        .b-example-divider {
+            flex-shrink: 0;
+            width: 1.5rem;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, .1);
+            border: solid rgba(0, 0, 0, .15);
+            border-width: 1px 0;
+            box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15)
+        }
+
+        .bi {
+            vertical-align: -.125em;
+            pointer-events: none;
+            fill: currentColor
+        }
+
+        .dropdown-toggle {
+            outline: 0
+        }
+
+        .nav-flush .nav-link {
+            border-radius: 0
+        }
+
+        .btn-toggle {
+            display: inline-flex;
+            align-items: center;
+            padding: .25rem .5rem;
+            font-weight: 600;
+            color: rgba(0, 0, 0, .65);
+            background-color: transparent;
+            border: 0
+        }
+
+        .btn-toggle:hover,
+        .btn-toggle:focus {
+            color: rgba(0, 0, 0, .85);
+            background-color: #d2f4ea
+        }
+
+        .btn-toggle::before {
+            width: 1.25em;
+            line-height: 0;
+            content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
+            transition: transform .35s ease;
+            transform-origin: .5em 50%
+        }
+
+        .btn-toggle[aria-expanded="true"] {
+            color: rgba(0, 0, 0, .85)
+        }
+
+        .btn-toggle[aria-expanded="true"]::before {
+            transform: rotate(90deg)
+        }
+
+        .btn-toggle-nav a {
+            display: inline-flex;
+            padding: .1875rem .5rem;
+            margin-top: .125rem;
+            margin-left: 1.25rem;
+            text-decoration: none
+        }
+
+        .btn-toggle-nav a:hover,
+        .btn-toggle-nav a:focus {
+            background-color: #d2f4ea
+        }
+
+        .scrollarea {
+            overflow-y: auto
+        }
+
+        .fw-semibold {
+            font-weight: 600
+        }
+
+        .lh-tight {
+            line-height: 1.25
+        }
+
+        .bd-placeholder-img {
+            font-size: 1.125rem;
+            text-anchor: middle;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none
+        }
+
+        @media (min-width:768px) {
+            .bd-placeholder-img-lg {
+                font-size: 3.5rem
+            }
+        }
+    </style>
+    <style>
+        .list-group {
+            width: auto;
+            max-width: 460px;
+            margin: 4rem auto
+        }
+
+        [contenteditable]:focus {
+            outline: 0
+        }
+
+        .list-group-checkable {
+            display: grid;
+            gap: .5rem;
+            border: 0
+        }
+
+        .list-group-checkable .list-group-item {
+            cursor: pointer;
+            border-radius: .5rem
+        }
+
+        .list-group-item-check {
+            position: absolute;
+            clip: rect(0, 0, 0, 0);
+            pointer-events: none
+        }
+
+        .list-group-item-check:hover+.list-group-item {
+            background-color: var(--bs-light)
+        }
+
+        .list-group-item-check:checked+.list-group-item {
+            color: #fff;
+            background-color: var(--bs-blue)
+        }
+
+        .list-group-item-check[disabled]+.list-group-item,
+        .list-group-item-check:disabled+.list-group-item {
+            pointer-events: none;
+            filter: none;
+            opacity: .5
+        }
+    </style>
+</head>
+
+<body style="height: 90%;" onload="get_TOP20_data()">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">B站弹幕可视化分析系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">主页</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/TOP20">TOP20热门视频</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Home</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <main style="overflow: hidden;height: 95%;" id="app">
+        <div class="b-example-divider"></div>
+
+        <div class="d-flex flex-column align-items-stretch flex-shrink-0 bg-white" style="width: 240px;">
+            <a href="/"
+                class="d-flex align-items-center flex-shrink-0 p-3 link-dark text-decoration-none border-bottom">
+                <span class="fs-5 fw-semibold">B站热门视频TOP20</span>
+            </a>
+            <div class="card" id="roading01">
+                <div class="card-body ">
+                    <div class="spinner-border text-primary"></div>
+                    <h2 class="card-title" id="roading_title01">数据加载中···</h2>
+                </div>
+            </div>
+            <div id="TOP20_view" class="list-group list-group-flush border-bottom scrollarea"
+                style="width: 240px;overflow-x: clip;">
+
+
+            </div>
+        </div>
+
+        <div class="b-example-divider"></div>
+        <div class="container main" style="height: 100%;overflow-y: scroll;">
+            <div class="card bg-primary text-white">
+                <div class="card-body h4">请选择一个视频</div>
+                <button type="button" id="update_data" class="btn btn-danger"
+                    onclick="submit_task_save_all_data()">上传弹幕与评论数据集到分析系统</button>
+            </div>
+            <div class="row">
+
+                <div class="container-sm col" style="max-height: 350px;overflow-y: scroll;">
+                    <div class="card bg-light text-dark">
+                        <div class="card-body">弹幕列表</div>
+                    </div>
+
+                    <div id="danmaku" class="list-group list-group-checkable" style="max-width: 500px;">
+                        <!-- <input class="list-group-item-check" type="radio" name="listGroupCheckableRadios"
+                            id="listGroupCheckableRadios1" value="" checked>
+                        <label class="list-group-item py-3" for="listGroupCheckableRadios1">
+                            First radio
+                            <span class="d-block small opacity-50">With support text underneath to add more
+                                detail</span>
+                        </label> -->
+                    </div>
+                </div>
+                <div class="container-sm col" style="max-height: 350px;overflow-y: scroll;">
+                    <div class="card bg-light text-dark">
+                        <div class="card-body">评论列表</div>
+                    </div>
+                    <div id="reply" class="list-group list-group-checkable">
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+
+                <div class="container-sm col">
+                    <div class="card bg-success text-white">
+                        <div class="card-body h5" id="card_danmaku"></div>
+                    </div>
+                    <iframe id="wordCloud" src="" width="1000" height="600">
+                        该网站使用了框架技术，但是您的浏览器不支持框架，请升级您的浏览器以便正常访问。
+                    </iframe>
+                </div>
+
+                <div class="container-sm col">
+                    <div class="card bg-success text-white">
+                        <div class="card-body h5" id="card_reply"></div>
+                    </div>
+                    <iframe id="reply_wordCloud" src="" width="1000" height="600">
+                        该网站使用了框架技术，但是您的浏览器不支持框架，请升级您的浏览器以便正常访问。
+                    </iframe>
+                </div>
+            </div>
+            <div class="container" style="max-width: 1200px;">
+                <div id="main1" style="width: 1200;height:800px;"></div>
+                <div id="main2" style="width: 1200;height:800px;"></div>
+            </div>
+
+        </div>
+    </main>
+
+
+</body>
+
+</html>
+<script>
+    var TOP20_data;
+    var danmaku_data;
+    var reply_data;
+    var requestID_danmaku;
+    var requestID_reply;
+    var aid;
+    var bvid;
+    function submit_task_save_all_data() {
+        if (requestID_danmaku === "" || requestID_danmaku === undefined || requestID_reply === "" || requestID_reply === undefined || bvid == "") {
+            alert("创建任务失败，无数据！")
+            return
+        }
+        let html_content04 = `<div class="card" id="roading04">
+                <div class="card-body ">
+                    <div class="spinner-border text-primary"></div>
+                    <h2 class="card-title" id="roading_title04">数据保存中···</h2>
+                </div>
+            </div>`
+        $(".container.main").prepend(html_content04);
+        $.ajax({//请求保存数据
+            type: "POST",
+            url: "submit_task_save_all_data/" + bvid + "@" + requestID_danmaku + "@" + requestID_reply,
+            async: true,
+            cache: true,
+            dataType: "json",
+            success: function (backdata, status, xmlHttpRequest) {
+                if (backdata[0]["status"] === "create_save_all_data_task_fail") {
+                    alert("缓存数据丢失，任务创建失败！")
+                    $("#roading04").hide()
+                    return
+                }
+                requestID = backdata[0]["requestID"];
+                $("#roading_title04").text("任务创建成功，任务编号为：" + requestID)
+                let timer = setInterval(task, 2000);
+
+
+                function task() {
+                    $.ajax({
+                        type: "GET",
+                        url: "get_task_status/" + requestID,
+                        async: true,
+                        cache: true,
+                        dataType: "json",
+                        success: (backdata, status, xmlHttpRequest) => {
+                            if (backdata[0]["status"] === "save_all_data_done") {
+                                clearInterval(timer)
+                                $("#roading04").hide()
+                            } else if (backdata[0]["status"] === "save_all_data_fail") {
+                                clearInterval(timer)
+                                $("#roading04").hide()
+                                alert("保存数据失败！数据库存在数据！")
+                            }
+                        }
+                    })
+                }
+            }
+        })
+    }
+    function get_TOP20_data() {
+        let that = this;
+        $.ajax({//请求TOP20数据
+            type: "POST",
+            url: "submit_task_get_TOP20_data",
+            async: true,
+            cache: true,
+            dataType: "json",
+            success: function (backdata, status, xmlHttpRequest) {
+
+                requestID = backdata[0]["requestID"];
+                $("#roading_title01").text("任务创建成功，任务编号为：" + requestID)
+                let timer = setInterval(task, 1000);
+                function task() {
+                    $.ajax({
+                        type: "GET",
+                        url: "get_task_status/" + requestID,
+                        async: true,
+                        cache: true,
+                        dataType: "json",
+                        success: (backdata, status, xmlHttpRequest) => {
+                            if (backdata[0]["status"] === "get_TOP20_data_done") {
+                                clearInterval(timer)
+                                $.ajax({
+                                    type: "GET",
+                                    url: "get_TOP20_data/" + requestID,
+                                    async: true,
+                                    cache: true,
+                                    dataType: "json",
+                                    success: (backdata, status, xmlHttpRequest) => {
+                                        TOP20_data = backdata
+                                        that.process_TOP20_data(backdata)
+                                        $("#roading01").hide()
+                                    }
+                                })
+                            }
+                        }
+                    })
+                }
+
+            },
+            error: function (msg) {
+                alert("错误内容" + msg)
+            }
+        });
+    }
+    function process_TOP20_data(json_data) {
+        $("#TOP20_view").empty() 
+        json_data.forEach((item, index, arr) => {
+            let html_content = `<a bvid="` + item["bvid"] + `" title="` + item["title"] + `" aid="` + item["aid"] + `"
+                    class="view list-group-item list-group-item-action py-3 lh-tight" aria-current="true" ">
+                    <div class="d-flex w-100 align-items-center justify-content-between">
+                        <strong class="mb-1">`+ item["title"] + `</strong>
+                    </div>
+                    <img src="`+ item["pic"] + `" class="rounded" alt="Cinque Terre" width="200" height="150">
+                </a>`
+            $("#TOP20_view").append(html_content)
+        })
+
+    }
+    $("main").delegate(".view", "click", process_clicked_TOP20)//动态绑定事件
+
+    function process_clicked_TOP20() {
+        // console.log(666)
+        reply_data = null;
+        danmaku_data = null;
+        bvid = $(this).attr("bvid");
+        aid = $(this).attr("aid");
+        // console.log(bvid,aid)
+
+        let html_content02 = `<div class="card" id="roading02">
+                <div class="card-body ">
+                    <div class="spinner-border text-primary"></div>
+                    <h2 class="card-title" id="roading_title02">数据加载中···</h2>
+                </div>
+            </div>`
+        let html_content03 = `<div class="card" id="roading03">
+                <div class="card-body ">
+                    <div class="spinner-border text-primary"></div>
+                    <h2 class="card-title" id="roading_title03">数据加载中···</h2>
+                </div>
+            </div>`
+        $(".container.main").prepend(html_content02);
+        $(".container.main").prepend(html_content03);
+        $(".h4").text("当前分析：" + $(this).attr("title"))
+
+        process_danmaku_data(bvid);
+
+    }
+    function process_danmaku_data(bvid) {
+        let that = this;
+        $.ajax({//请求弹幕数据
+            type: "POST",
+            url: "submit_task_get_danmaku_data/" + bvid,
+            async: true,
+            cache: true,
+            dataType: "json",
+            success: function (backdata, status, xmlHttpRequest) {
+                requestID_danmaku = backdata[0]["requestID"];
+                $("#roading_title02").text("任务创建成功，任务编号为：" + requestID_danmaku)
+                let timer = setInterval(task, 1000);
+                function task() {
+                    $.ajax({
+                        type: "GET",
+                        url: "get_task_status/" + requestID_danmaku,
+                        async: true,
+                        cache: true,
+                        dataType: "json",
+                        success: (backdata, status, xmlHttpRequest) => {
+                            if (backdata[0]["status"] === "get_danmaku_data_done") {
+                                clearInterval(timer)
+                                $.ajax({
+                                    type: "GET",
+                                    url: "get_danmaku_data/" + requestID_danmaku,
+                                    async: true,
+                                    cache: true,
+                                    dataType: "json",
+                                    success: (backdata, status, xmlHttpRequest) => {
+                                        danmaku_data = backdata;
+                                        // that.process_TOP20_data(backdata)
+                                        $("#danmaku").empty()
+                                        backdata.forEach((item, index, arr) => {
+                                            if (index <= 100) {
+                                                let content = `<input class="list-group-item-check" type="radio" name="listGroupCheckableRadios"
+                            id="listGroupCheckableRadios`+ index + `" value="">
+                        <label class="list-group-item py-3" for="listGroupCheckableRadios`+ index + `" style="max-width: 500px;">
+                            `+ item.content + `
+                            <span class="d-block small opacity-50">`+ getLocalTime(item.ctime) + `</span>
+                        </label>`
+                                                $("#danmaku").append(content);
+                                            }
+                                        });
+                                        $("#card_danmaku").text("目前实时收集了" + backdata.length + "条弹幕数据进行分析")
+                                        get_danmaku_wordCloud(requestID_danmaku);
+                                        $("#roading02").hide()
+                                    }
+                                })
+                            }
+                        }
+                    })
+                }
+                function get_danmaku_wordCloud(requestID_danmaku) {
+                    process_reply_data(aid);
+                    $("#wordCloud").attr('src', "/get_danmaku_wordCloud/" + requestID_danmaku)
+                }
+            },
+            error: function (msg) {
+                alert("错误内容" + msg)
+            }
+        });
+    }
+    function process_reply_data(aid) {
+        let that = this;
+        $.ajax({//请求弹幕数据
+            type: "POST",
+            url: "submit_task_get_reply_data/" + aid,
+            async: true,
+            cache: true,
+            dataType: "json",
+            success: function (backdata, status, xmlHttpRequest) {
+                requestID_reply = backdata[0]["requestID"];
+                $("#roading_title03").text("任务创建成功，任务编号为：" + requestID_reply)
+                let timer = setInterval(task, 1000);
+                function task() {
+                    $.ajax({
+                        type: "GET",
+                        url: "get_task_status/" + requestID_reply,
+                        async: true,
+                        cache: true,
+                        dataType: "json",
+                        success: (backdata, status, xmlHttpRequest) => {
+                            if (backdata[0]["status"] === "get_reply_data_done") {
+                                clearInterval(timer)
+                                $.ajax({
+                                    type: "GET",
+                                    url: "get_reply_data/" + requestID_reply,
+                                    async: true,
+                                    cache: true,
+                                    dataType: "json",
+                                    success: (backdata, status, xmlHttpRequest) => {
+                                        reply_data = backdata;
+                                        $("#reply").empty()
+                                        reply_data.forEach((item, index, arr) => {
+                                            if (index <= 100) {
+                                                // console.log(item)
+                                                let content = `<input class="list-group-item-check" type="radio" name="listGroupCheckableRadios"
+                            id="listGroupCheckableRadios123`+ index + `" value="">
+                        <label class="list-group-item py-3" for="listGroupCheckableRadios123`+ index + `" style="max-width: 500px;">
+                            `+ item.评论 + `
+                            <span class="d-block small opacity-50">`+ getLocalTime(item.时间) + `</span>
+                        </label>`
+                                                $("#reply").append(content);
+                                            }
+                                        });
+                                        // that.process_TOP20_data(backdata)
+                                        $("#card_reply").text("目前实时收集了" + reply_data.length + "条评论数据进行分析")
+                                        get_reply_wordCloud(requestID_reply);
+                                        $("#roading03").hide()
+                                    }
+                                })
+                            }
+                        }
+                    })
+                }
+                function get_reply_wordCloud(requestID_reply) {
+                    $("#reply_wordCloud").attr('src', "/get_reply_wordCloud/" + requestID_reply)
+                    set_charts();
+                }
+            },
+            error: function (msg) {
+                alert("错误内容" + msg)
+            }
+        });
+    }
+    function getLocalTime(nS) {
+
+        return new Date(parseInt(nS) * 1000).toLocaleString().replace(/:\d{1,2}$/, ' ');
+
+    }
+</script>

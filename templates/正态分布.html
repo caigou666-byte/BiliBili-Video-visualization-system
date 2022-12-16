@@ -1,0 +1,331 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <style type="text/css">
+            #box {
+                border: 1px #E8E8E8 solid;
+                overflow: hidden;
+                float: left;
+                width: 99%;
+ 
+            }
+            .child {
+                height: 330px;
+                width: 99%;
+                border: 1px #778899 solid;
+                float: left;
+            }
+            .headInfo {
+                width: 99%;
+                text-align: center;
+                margin-top: 20px;
+                float: left;
+            }
+        </style>
+         <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+        <script src="../static/js/echarts.js"></script>
+ 
+        <script type="text/javascript">
+			//计算正态数值分布频率
+            function fun(x, u, a) {
+                return (1 / Math.sqrt(2 * Math.PI) * a) * Math.exp(-1 * ((x - u) * (x - u)) / (2 * a * a));
+            }
+			//给数组添加数据
+            function addParam(arr, target) {
+                //是否是等于
+                var flag = false;
+                var target = parseFloat(target);
+                //最小
+                if (target < parseFloat(arr[0])) {
+                    arr.unshift(target.toString());
+                    return arr;
+                }
+ 
+                //最大
+                if (target > parseFloat(arr[arr.length - 1])) {
+                    arr.push(target.toString());
+                    return arr;
+                }
+ 
+                //中间
+                for (var i = 0; i < arr.length; i++) {
+                    if (parseFloat(arr[i]) > target) {
+                        if (arr[i - 1] == target)
+                            flag = true;
+                        break;
+                    }
+                }
+                if (flag) {
+                    return arr;
+                } else {
+                    arr.splice(i, 0, target.toString());
+                    return arr;
+                }
+            }
+			//获取数据数组最大值
+            function getTop(arr) {
+                var maxIndex = 0;
+                for (var i = 0; i < arr.length; i++) {
+                    maxIndex = parseFloat(arr[i]) > parseFloat(arr[maxIndex]) ? i : maxIndex;
+                }
+                return parseFloat(arr[maxIndex]);
+ 
+            }
+			//构造正态曲线特定值对象
+            function getParam(low, mean, up, top) {
+                var res = {};
+                res['low'] = low;
+                res['mean'] = mean;
+                res['up'] = up;
+                res['top'] = top;
+ 
+                return res;
+            }
+			//求数组和
+			var getSum = function(x,y){ return parseFloat(x)+parseFloat(y);};
+			//求平均值
+			var getMean = function(arr_x,arr_y){
+				var mean = 0;
+				var sum = 0;
+				var len = 1;
+				if(arr_x.length==arr_y.length){
+					len = arr_y.reduce(getSum);
+					for(var i=0; i<arr_x.length; i++){
+						sum = sum + parseFloat(arr_x[i])*parseFloat(arr_y[i]);
+					}
+				}else{
+				
+				}
+				mean = (sum/len).toFixed(0);
+				return mean;
+			};
+			//求标准偏差
+			var getStdev = function(arr_x,arr_y,avg){
+				var sum = 0; 
+				var len = arr_y.reduce(getSum); //总样本数
+				var subtractAvg = [];
+				for(var i=0; i<arr_x.length; i++){ //做平均差平方
+					subtractAvg.push((arr_x[i] - avg)*(arr_x[i] - avg));
+				}
+				for(var j=0; j<subtractAvg.length; j++){ //平均差平方和
+					sum = sum + parseFloat(subtractAvg[j])*parseFloat(arr_y[j]);
+				}
+				return Math.sqrt(sum/len); //标准偏差
+			};
+ 
+            $(function() {
+                var myChart1 = echarts.init(document.getElementById('box'));
+				//数据数组
+                var datas = [{
+                    "data": {
+                        "stdplot": {
+                            "xaxis": "49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100",
+                            "yaxis": "0,0,0,3,0,0,0,1,2,0,0,1,1,1,3,5,4,8,13,16,14,9,15,10,13,9,16,10,12,14,16,10,9,10,12,12,14,7,4,3,9,8,8,3,3,4,5,5,4,2,1,1"
+                        }
+                    },
+                    "idx": 1
+                }];
+				
+                for (var i = 0; i < datas.length; i++) {
+                    $("#box").append("<div class='headInfo' id='" + "top" + i + "'><h2>正态分布曲线_" + datas[i].idx + "</h2></div>");
+                    $("#box").append("<div class='child' id='" + "child" + i + "'></div>");
+ 
+                    var myChart = echarts.init(document.getElementById("child" + i));
+                    var yArr = []; //正态分布频率
+                    var xArr = []; //正态分布数值
+					
+					var x = datas[i].data.stdplot.xaxis.split(','); //数据值分布列
+					console.log(x);
+                    var y = datas[i].data.stdplot.yaxis.split(','); //数据值频数数组
+					console.log(y);
+                    var mean = parseFloat(getMean(x,y)); //平均值
+					console.log("平均值:"+mean);
+                    var stdev = parseFloat(getStdev(x,y,mean)); //
+                    console.log("标准偏差:"+stdev);
+					
+					//正态分布3倍标准差范围
+                    var low = mean - 1 * stdev;
+                    var up = mean + 1 * stdev;
+					
+					xArr = x.concat();
+                    xArr = addParam(xArr, low.toFixed(0).toString()); //增加最小值整数
+                    xArr = addParam(xArr, mean.toFixed(0).toString()); //增加平均值整数
+                    xArr = addParam(xArr, up.toFixed(0).toString()); //增加最大值整数
+ 
+                    var top = (1 / Math.sqrt(2 * Math.PI) * stdev);
+                    var mar = getParam(low.toFixed(0).toString(), mean.toFixed(0).toString(), up.toFixed(0).toString(), top);
+					console.log(mar);
+                    
+                    for (var j = 0; j < x.length; j++) {
+                        var res = fun(x[j], mean, stdev).toFixed(2);
+                        yArr.push(res);
+ 
+                    }
+                    
+                    var colors = ['#0d6efd', '#ff3428', '#0070C0', '#FF3428'];
+                    var option = {
+                        color: colors,
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'cross'
+                            }
+                        },
+                        grid: {
+                            right: '15%'
+                        },
+                        toolbox: {
+                            feature: {
+                                dataView: {
+                                    show: false,
+                                    readOnly: false
+                                },
+                                restore: {
+                                    show: true
+                                },
+                                saveAsImage: {
+                                    show: true
+                                }
+                            }
+                        },
+                        legend: {
+                            data: ['原数据频数', '正态分布']
+                        },
+                        xAxis: [{
+                            type: 'category',
+                            axisTick: {
+                                alignWithLabel: true
+                            },
+                            data: x
+                        }],
+                        yAxis: [{
+                                type: 'value',
+                                name: '概率',
+                                position: 'right',
+                                axisLine: {
+                                    lineStyle: {
+                                        color: colors[1]
+                                    }
+                                },
+                                axisLabel: {
+                                    formatter: '{value}'
+                                }
+                            },
+                            {
+                                type: 'value',
+								name: '频数',
+                                position: 'left',
+                                axisLine: {
+                                    lineStyle: {
+                                        color: colors[0]
+                                    }
+                                },
+                                axisLabel: {
+                                    formatter: '{value}'
+                                }
+                            }
+                        ],
+                        series: [{
+                                name: '原数据频数',
+                                type: 'bar',
+                                yAxisIndex: 1,
+                                data: y
+                            },
+                            {
+                                name: '正态分布',
+                                type: 'line',
+                                smooth: true,
+                                yAxisIndex: 0,
+                                data: yArr
+                            },
+                            {
+                                name: '满分线',
+                                type: 'line',
+                                markLine: {
+                                    itemStyle: { 
+                                        color: '#000',
+                                        normal: {
+                                            lineStyle: {
+                                                width: 2,
+												color: colors[2],
+                                                type: 'solid', //'dotted'虚线 'solid'实线
+                                            },
+                                            label: {
+                                                show: true,
+                                                position: 'end',
+                                                color: 'black',
+                                                formatter: function(params) {
+                                                    str = mar.low;
+                                                    return str
+                                                }
+                                            }
+ 
+                                        }
+                                    },
+                                    name: 'low',
+                                    //symbol:'none',//去掉箭头
+                                    data: [
+                                        [{
+                                                coord: [mar.low, 0]
+                                            },
+                                            {
+                                                coord: [mar.low, mar.top]
+                                            } //如何获取grid上侧最大值，目前是写死的
+                                        ]
+                                    ]
+                                }
+                            },
+                            {
+                                name: '及格线',
+                                type: 'line',
+                                markLine: {
+                                    itemStyle: { 
+                                        color: '#000',
+                                        normal: {
+                                            lineStyle: {
+                                                width: 2,
+												color: colors[3],
+                                                type: 'solid', //'dotted'虚线 'solid'实线
+                                            },
+                                            label: {
+                                                show: true,
+                                                position: 'end',
+                                                color: 'black',
+                                                formatter: function(params) {
+                                                    str = mar.up;
+                                                    return str
+                                                }
+                                            }
+ 
+                                        }
+                                    },
+                                    name: 'up',
+                                    yAxisIndex: 0,
+                                    //symbol: 'none',//去掉箭头
+                                    data: [
+                                        [{
+                                                coord: [mar.up, 0]
+                                            },
+                                            {
+                                                coord: [mar.up, mar.top]
+                                            } //如何获取grid上侧最大值，目前是写死的
+                                        ]
+                                    ]
+                                }
+                            },
+ 
+                        ]
+                    };
+                    myChart.setOption(option);
+                }
+ 
+            });
+        </script>
+    </head>
+ 
+    <body>
+        <div>
+            <div id="box"></div>
+        </div>
+    </body>
+</html>
